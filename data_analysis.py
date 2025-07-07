@@ -45,7 +45,7 @@ class WeatherDataAnalysis:
         cursor = self.conn.cursor()
         cursor.execute(query)
         results = cursor.fetchall()
-        self.logger.info(f"Calculated statistics for {len(results)} station-year pairs.")
+        self.logger.info(f"Calculated stats for {len(results)} station-year pairs.")
         return results
 
     def store_annual_stats(self, stats):

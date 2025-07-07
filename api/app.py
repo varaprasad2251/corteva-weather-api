@@ -7,15 +7,12 @@ features:
 - GET /api/weather - Query weather records with filtering and pagination
 - GET /api/weather/stats - Query annual weather statistics with filtering and pagination
 - OpenAPI/Swagger documentation at /api/docs
-- Comprehensive error handling and logging
-- Type hints for better code maintainability
 
 The API supports:
 - Filtering by station_id, date, and year
 - Pagination with configurable page size
 - Detailed response metadata
 - Proper HTTP status codes
-- Input validation
 """
 
 import logging
@@ -38,10 +35,9 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app with configuration
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False  # Preserve field order in JSON responses
-# Pretty print JSON in development
 app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
-# Initialize Flask-RESTX API with comprehensive OpenAPI documentation
+# Initialize Flask-RESTX API with OpenAPI documentation
 api = Api(
     app,
     version="1.0",
@@ -58,7 +54,7 @@ api = Api(
 # Define namespace with correct path
 weather_ns = api.namespace("api/weather", description="Weather data operations")
 
-# Define comprehensive models for OpenAPI documentation
+# Define models for OpenAPI documentation
 weather_model = api.model(
     "WeatherRecord",
     {
@@ -168,15 +164,7 @@ stats_query_params.add_argument(
 
 
 def get_db_connection() -> sqlite3.Connection:
-    """
-    Get SQLite database connection.
-
-    Returns:
-        sqlite3.Connection: Database connection object
-
-    Raises:
-        sqlite3.Error: If database connection fails
-    """
+    """Get SQLite database connection"""
     try:
         db_path = os.path.join(os.path.dirname(__file__), "..", "db", "weather_data.db")
         db_path = os.path.abspath(db_path)
@@ -206,53 +194,33 @@ def apply_pagination(query: str, page: int, page_size: int) -> str:
     return f"{query} LIMIT {page_size} OFFSET {offset}"
 
 
-def validate_date_format(date_str: str) -> bool:
-    """Validate date string format (ISO 8601: YYYY-MM-DD) with flexible input"""
-    if date_str is None or not isinstance(date_str, str) or not date_str:
-        return False
-
+def validate_date_format(date_str: str) -> str | None:
+    """Validates date string and return ISO format date"""
+    if not isinstance(date_str, str) or not date_str:
+        return None
     try:
-        parsed_date = datetime.strptime(date_str, "%Y-%m-%d")
-        # Additional year range validation
-        if parsed_date.year < 1800 or parsed_date.year > 2100:
-            return False
-        return True
-    except ValueError:
-        return False
+        parts = date_str.split("-")
+        if len(parts) != 3:
+            return None
+        year, month, day = map(int, parts)
+        if not (1800 <= year <= 2100):
+            return None
+        valid_date = datetime(year, month, day)
+        return valid_date.strftime("%Y-%m-%d")
+    except Exception:
+        return None
 
 
 def build_where_clause(
     conditions: List[str], params: List[Any]
 ) -> Tuple[str, List[Any]]:
-    """
-    Build SQL WHERE clause from conditions and parameters.
-
-    Args:
-        conditions: List of SQL condition strings
-        params: List of parameter values
-
-    Returns:
-        Tuple[str, List[Any]]: WHERE clause string and final parameters
-
-    Example:
-        >>> build_where_clause(["station_id = ?", "date = ?"],
-        ...                    ["USC00110072", "20200101"])
-        (" WHERE station_id = ? AND date = ?", ["USC00110072", "20200101"])
-    """
+    """Build SQL WHERE clause from conditions and parameters"""
     where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
     return where_clause, params
 
 
 def validate_station_id(station_id: str) -> bool:
-    """
-    Validate station ID format.
-
-    Args:
-        station_id: Station ID string to validate
-
-    Returns:
-        bool: True if valid format, False otherwise
-    """
+    """Validate station ID format"""
     if not station_id or not isinstance(station_id, str):
         return False
     # Station ID should be alphanumeric and reasonable length
@@ -263,7 +231,7 @@ def validate_station_id(station_id: str) -> bool:
 
 
 def validate_weather_args(args):
-    """Comprehensive validation for weather endpoint arguments."""
+    """Validation for weather endpoint arguments."""
     # Validate pagination
     page = max(1, args.get("page", 1))
     page_size = min(1000, max(1, args.get("pageSize", 100)))
@@ -276,15 +244,18 @@ def validate_weather_args(args):
 
     # Validate date if provided
     date = args.get("date")
-    if date is not None and not validate_date_format(date):
-        logger.warning("Invalid date format: %s", date)
-        api.abort(400, "Invalid date format. Use YYYY-MM-DD format.")
+    if date is not None:
+        normalized_date = validate_date_format(date)
+        if normalized_date is None:
+            logger.warning("Invalid date format: %s", date)
+            api.abort(400, "Invalid date format. Use YYYY-MM-DD format.")
+        date = normalized_date
 
     return page, page_size, station_id, date
 
 
 def validate_stats_args(args):
-    """Comprehensive validation for stats endpoint arguments."""
+    """Validation for stats endpoint arguments."""
     # Validate pagination
     page = max(1, args.get("page", 1))
     page_size = min(1000, max(1, args.get("pageSize", 100)))
@@ -306,11 +277,9 @@ def validate_stats_args(args):
 
 @weather_ns.route("/", endpoint="weather_list", strict_slashes=False)
 class WeatherList(Resource):
-    """
-    Weather records endpoint.
-
-    Provides access to individual weather records with filtering and pagination.
-    Supports filtering by station_id and date, with comprehensive pagination.
+    """Weather records endpoint.
+    Provides access to individual weather records.
+    Supports filtering by station_id and date.
     """
 
     def _validate_weather_args(self, args):
@@ -325,7 +294,10 @@ class WeatherList(Resource):
         if args.get("station_id"):
             where_conditions.append("station_id = ?")
             params.append(args["station_id"])
-        if args.get("date"):
+        if hasattr(self, '_validated_date') and self._validated_date:
+            where_conditions.append("DATE(date) = DATE(?)")
+            params.append(self._validated_date)
+        elif args.get("date"):
             where_conditions.append("DATE(date) = DATE(?)")
             params.append(args["date"])
         where_clause, params = build_where_clause(where_conditions, params)
@@ -349,6 +321,7 @@ class WeatherList(Resource):
         try:
             args = weather_query_params.parse_args()
             page, page_size, station_id, date = self._validate_weather_args(args)
+            self._validated_date = date  # Store normalized date for query
             count_query, data_query, params = self._build_weather_query(args)
             with get_db_connection() as conn:
                 cursor = conn.cursor()

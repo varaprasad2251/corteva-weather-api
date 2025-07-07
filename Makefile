@@ -92,16 +92,6 @@ clean-db:
 	rm -f logs/*.log
 	@echo "Database cleanup complete!"
 
-# Quality checks
-quality: format lint type-check test
-	@echo "All quality checks passed!"
-
-# Pre-commit setup
-pre-commit:
-	@echo "Installing pre-commit hooks..."
-	pre-commit install
-	@echo "Pre-commit hooks installed!"
-
 # Database setup
 setup-db:
 	@echo "Setting up the weather database schema..."

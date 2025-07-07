@@ -198,9 +198,9 @@ class TestWeatherAPI:
         """Test date format validation with valid dates."""
         from api.app import validate_date_format
 
-        assert validate_date_format("2020-01-01") is True
-        assert validate_date_format("2020-12-31") is True
-        assert validate_date_format("1999-06-15") is True
+        assert validate_date_format("2020-01-01") == "2020-01-01"
+        assert validate_date_format("2020-12-31") == "2020-12-31"
+        assert validate_date_format("1999-06-15") == "1999-06-15"
 
     @pytest.mark.unit
     def test_validate_date_format_invalid(self) -> None:
@@ -208,17 +208,17 @@ class TestWeatherAPI:
         from api.app import validate_date_format
 
         # Wrong format (no dashes)
-        assert validate_date_format("20200101") is False
-        assert validate_date_format("2020-13-01") is False  # Invalid month
-        assert validate_date_format("2020-01-32") is False  # Invalid day
-        assert validate_date_format("invalid") is False
-        assert validate_date_format("") is False
-        assert validate_date_format("2020-01") is False  # Missing day
-        assert validate_date_format(None) is False  # None value
+        assert validate_date_format("20200101") is None
+        assert validate_date_format("2020-13-01") is None  # Invalid month
+        assert validate_date_format("2020-01-32") is None  # Invalid day
+        assert validate_date_format("invalid") is None
+        assert validate_date_format("") is None
+        assert validate_date_format("2020-01") is None  # Missing day
+        assert validate_date_format(None) is None  # None value
 
         # These should now be valid (flexible format)
-        assert validate_date_format("2020-1-1") is True  # Flexible format
-        assert validate_date_format("2020-01-01") is True  # Standard format
+        assert validate_date_format("2020-1-1") == "2020-01-01"  # Flexible format
+        assert validate_date_format("2020-01-01") == "2020-01-01"  # Standard format
 
     @pytest.mark.unit
     def test_apply_pagination(self) -> None:
@@ -829,8 +829,8 @@ class TestWeatherAPI:
         from api.app import apply_pagination, build_where_clause, validate_date_format
 
         # Test empty date validation
-        assert validate_date_format("") is False
-        assert validate_date_format(None) is False  # type: ignore
+        assert validate_date_format("") is None
+        assert validate_date_format(None) is None  # type: ignore
 
         # Test pagination with edge values
         query = "SELECT * FROM table"

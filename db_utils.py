@@ -8,38 +8,21 @@ import argparse
 import sqlite3
 
 
-def setup_database(db_path: str) -> None:
+def setup_database(db_path: str, schema_path: str = "weather_schema.sql") -> None:
     """
-    Set up the SQLite database with required tables.
+    Set up the SQLite database with required tables from schema file.
     Args:
         db_path: Path to the SQLite database file
+        schema_path: Path to the SQL schema file
     """
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS weather_records (
-            station_id TEXT NOT NULL,
-            date TEXT NOT NULL,
-            max_temp INTEGER,
-            min_temp INTEGER,
-            precipitation INTEGER,
-            PRIMARY KEY (station_id, date)
-        )
-        """
-    )
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS annual_weather_stats (
-            station_id TEXT NOT NULL,
-            year INTEGER NOT NULL,
-            avg_max_temp REAL,
-            avg_min_temp REAL,
-            total_precipitation REAL,
-            PRIMARY KEY (station_id, year)
-        )
-        """
-    )
+    
+    # Read and execute the schema file
+    with open(schema_path, 'r') as schema_file:
+        schema_sql = schema_file.read()
+        cursor.executescript(schema_sql)
+    
     conn.commit()
     conn.close()
 
@@ -59,5 +42,5 @@ if __name__ == "__main__":
         help="Path to SQL schema file (default: weather_schema.sql)",
     )
     args = parser.parse_args()
-    setup_database(args.db_path)
+    setup_database(args.db_path, args.schema_path)
     print(f"Database schema created at {args.db_path}")
