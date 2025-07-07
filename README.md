@@ -108,8 +108,8 @@ make run
 
 The API will be available at:
 - API Documentation: http://localhost:5001/api/docs
-- Weather Records: http://localhost:5001/api/weather
-- Annual Statistics: http://localhost:5001/api/stats
+- Weather Records: http://localhost:5001/api/weather/
+- Annual Statistics: http://localhost:5001/api/weather/stats/
 
 ---
 
@@ -265,7 +265,7 @@ Running data analysis...
 Built with Flask-RESTX, the API provides:
 
 - **Weather records endpoint**: `/api/weather` with filtering by date, station ID
-- **Annual statistics endpoint**: `/api/stats` with filtering by year, station ID
+- **Annual statistics endpoint**: `/api/weather/stats` with filtering by year, station ID
 - **Pagination**: can configure pageSize and supports filtering by page
 - **Swagger documentation**: Automatic API documentation
 
@@ -302,7 +302,7 @@ Returns weather records
 }
 ```
 
-#### GET /api/stats
+#### GET /api/weather/stats
 Returns annual weather statistics
 
 **Query Parameters:**
@@ -341,7 +341,7 @@ make run
 
 Endpoints:
 - **Weather Records**: http://localhost:5001/api/weather
-- **Stats**: http://localhost:5001/api/stats
+- **Stats**: http://localhost:5001/api/weather/stats
 
 ### Testing
 ```bash
