@@ -97,7 +97,7 @@ git clone https://github.com/corteva/code-challenge-template.git
 
 #Ensure you're inside your main project directory
 mkdir -p data/wx_data
-cp -r ../code-challenge-template/data/wx_data/* data/wx_data/
+cp -r code-challenge-template/wx_data/* data/wx_data/
 ```
 
 ### Running the App

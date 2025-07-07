@@ -24,19 +24,19 @@ lint:
 	rm -f .flake8.log
 
 # Testing
-test:
+test: setup-db
 	@echo "Running all tests..."
 	pytest tests/ -v
 
-test-cov:
+test-cov: setup-db
 	@echo "Running tests with coverage..."
 	pytest tests/ -v --cov=api --cov-report=term-missing --cov-report=html
 
-test-unit:
+test-unit: setup-db
 	@echo "Running unit tests..."
 	pytest tests/ -v -m "unit"
 
-test-integration:
+test-integration: setup-db
 	@echo "Running integration tests..."
 	pytest tests/ -v -m "integration"
 
@@ -95,5 +95,6 @@ clean-db:
 # Database setup
 setup-db:
 	@echo "Setting up the weather database schema..."
+	@mkdir -p db
 	python db_utils.py --db-path db/weather_data.db --schema-path weather_schema.sql
 	@echo "Database setup complete!"
