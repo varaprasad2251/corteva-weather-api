@@ -71,7 +71,7 @@ pipenv shell
 cd corteva-weather-api
 ```
 
-## Makefile Commands
+### Makefile Commands
 
 To make development easier, I’ve added a Makefile with the most common commands:
 
@@ -86,6 +86,18 @@ To make development easier, I’ve added a Makefile with the most common command
 | `make clean`   | Remove temporary files or caches            |
 | `make clean-db`| Remove db files                             |
 
+### Downloading Weather Data
+
+To run the ingestion locally, you must download the real weather data from the provided code challenge repository.
+
+```bash
+#Clone the Source Data Repository
+git clone https://github.com/corteva/code-challenge-template.git
+
+#Ensure you're inside your main project directory
+mkdir -p data/wx_data
+cp -r ../code-challenge-template/data/wx_data/* data/wx_data/
+```
 
 ### Running the App
 ```bash
