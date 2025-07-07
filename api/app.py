@@ -19,12 +19,12 @@ The API supports:
 """
 
 import logging
+import os
 import sqlite3
 from datetime import datetime
 from typing import Any, Dict, List, Tuple, Union
-import os
 
-from flask import Flask, request
+from flask import Flask
 from flask_restx import Api, Resource, fields
 
 # Configure logging with detailed formatting
@@ -38,7 +38,8 @@ logger = logging.getLogger(__name__)
 # Initialize Flask app with configuration
 app = Flask(__name__)
 app.config["JSON_SORT_KEYS"] = False  # Preserve field order in JSON responses
-app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True  # Pretty print JSON in development
+# Pretty print JSON in development
+app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
 # Initialize Flask-RESTX API with comprehensive OpenAPI documentation
 api = Api(
@@ -68,13 +69,17 @@ weather_model = api.model(
             required=True, description="Date in ISO 8601 format (e.g., '2020-01-01')"
         ),
         "max_temp": fields.Integer(
-            description="Maximum temperature in tenths of Celsius (e.g., 250 = 25.0°C)"
+            description=(
+                "Maximum temperature in tenths of Celsius (e.g., 250 = 25.0°C)"
+            )
         ),
         "min_temp": fields.Integer(
-            description="Minimum temperature in tenths of Celsius (e.g., 100 = 10.0°C)"
+            description=(
+                "Minimum temperature in tenths of Celsius (e.g., 100 = 10.0°C)"
+            )
         ),
         "precipitation": fields.Integer(
-            description="Precipitation in tenths of millimeters (e.g., 50 = 5.0mm)"
+            description=("Precipitation in tenths of millimeters " "(e.g., 50 = 5.0mm)")
         ),
     },
 )
@@ -104,7 +109,9 @@ pagination_model = api.model(
         "page": fields.Integer(description="Current page number (1-based)"),
         "pageSize": fields.Integer(description="Number of records per page"),
         "totalPages": fields.Integer(description="Total number of pages"),
-        "totalRecords": fields.Integer(description="Total number of records matching query"),
+        "totalRecords": fields.Integer(
+            description="Total number of records matching query"
+        ),
     },
 )
 
@@ -160,9 +167,6 @@ stats_query_params.add_argument(
 )
 
 
-
-
-
 def get_db_connection() -> sqlite3.Connection:
     """
     Get SQLite database connection.
@@ -174,7 +178,7 @@ def get_db_connection() -> sqlite3.Connection:
         sqlite3.Error: If database connection fails
     """
     try:
-        db_path = os.path.join(os.path.dirname(__file__), '..', 'db', 'weather_data.db')
+        db_path = os.path.join(os.path.dirname(__file__), "..", "db", "weather_data.db")
         db_path = os.path.abspath(db_path)
         return sqlite3.connect(db_path)
     except sqlite3.Error as e:
@@ -206,7 +210,7 @@ def validate_date_format(date_str: str) -> bool:
     """Validate date string format (ISO 8601: YYYY-MM-DD) with flexible input"""
     if date_str is None or not isinstance(date_str, str) or not date_str:
         return False
-    
+
     try:
         parsed_date = datetime.strptime(date_str, "%Y-%m-%d")
         # Additional year range validation
@@ -255,7 +259,7 @@ def validate_station_id(station_id: str) -> bool:
     if len(station_id) < 3 or len(station_id) > 20:
         return False
     # Allow alphanumeric characters and common separators
-    return station_id.replace('-', '').replace('_', '').isalnum()
+    return station_id.replace("-", "").replace("_", "").isalnum()
 
 
 def validate_weather_args(args):
@@ -263,19 +267,19 @@ def validate_weather_args(args):
     # Validate pagination
     page = max(1, args.get("page", 1))
     page_size = min(1000, max(1, args.get("pageSize", 100)))
-    
+
     # Validate station_id if provided
     station_id = args.get("station_id")
     if station_id is not None and not validate_station_id(station_id):
         logger.warning("Invalid station_id format: %s", station_id)
         api.abort(400, "Invalid station_id format. Use alphanumeric characters only.")
-    
+
     # Validate date if provided
     date = args.get("date")
     if date is not None and not validate_date_format(date):
         logger.warning("Invalid date format: %s", date)
         api.abort(400, "Invalid date format. Use YYYY-MM-DD format.")
-    
+
     return page, page_size, station_id, date
 
 
@@ -284,19 +288,19 @@ def validate_stats_args(args):
     # Validate pagination
     page = max(1, args.get("page", 1))
     page_size = min(1000, max(1, args.get("pageSize", 100)))
-    
+
     # Validate station_id if provided
     station_id = args.get("station_id")
     if station_id is not None and not validate_station_id(station_id):
         logger.warning("Invalid station_id format: %s", station_id)
         api.abort(400, "Invalid station_id format. Use alphanumeric characters only.")
-    
+
     # Validate year if provided
     year = args.get("year")
     if year is not None and (year < 1800 or year > 2100):
         logger.warning("Invalid year: %d", year)
         api.abort(400, "Invalid year. Must be between 1800 and 2100.")
-    
+
     return page, page_size, station_id, year
 
 
@@ -366,7 +370,10 @@ class WeatherList(Resource):
                 logger.info(
                     "Weather records query: %d records returned "
                     "(page %d/%d, total: %d)",
-                    len(records), page, total_pages, total
+                    len(records),
+                    page,
+                    total_pages,
+                    total,
                 )
                 return {
                     "data": records,
@@ -449,7 +456,10 @@ class WeatherStats(Resource):
                 logger.info(
                     "Weather stats query: %d records returned "
                     "(page %d/%d, total: %d)",
-                    len(records), page, total_pages, total
+                    len(records),
+                    page,
+                    total_pages,
+                    total,
                 )
                 return {
                     "data": records,
@@ -488,6 +498,7 @@ def handle_database_error(error):
     """Handle database errors and return JSON response."""
     logger.error("Database error: %s", error)
     return {"message": "Database error"}, 500
+
 
 @app.errorhandler(Exception)
 def handle_generic_error(error):

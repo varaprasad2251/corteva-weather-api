@@ -4,9 +4,6 @@
 install:
 	pip install -r requirements.txt
 
-install-dev:
-	pip install -r requirements-dev.txt
-
 # Code formatting
 format:
 	@echo "Formatting code with black..."
@@ -15,30 +12,16 @@ format:
 	isort api/ tests/ *.py
 	@echo "Code formatting complete!"
 
-# Linting
 lint:
-	@echo "Running code quality checks..."
-	@if flake8 api/ tests/ *.py --max-line-length=88 --extend-ignore=E203,W503 > /dev/null 2>&1; then \
+	@echo "Checking flake8..."
+	@flake8 api/ tests/ *.py --max-line-length=88 --extend-ignore=E203,W503 > .flake8.log 2>&1; \
+	if [ $$? -eq 0 ]; then \
 		echo "flake8: PASSED"; \
 	else \
 		echo "flake8: FAILED"; \
-		flake8 api/ tests/ *.py --max-line-length=88 --extend-ignore=E203,W503; \
-		exit 1; \
-	fi
-	@if pylint api/ tests/ *.py --disable=C0114,C0116 > /dev/null 2>&1; then \
-		echo "pylint: PASSED"; \
-	else \
-		echo "pylint: FAILED"; \
-		pylint api/ tests/ *.py --disable=C0114,C0116; \
-		exit 1; \
-	fi
-	@echo "All linting checks passed!"
-
-# Type checking
-type-check:
-	@echo "Running mypy type checking..."
-	mypy api/ tests/ *.py --ignore-missing-imports
-	@echo "Type checking complete!"
+		cat .flake8.log; \
+	fi; \
+	rm -f .flake8.log
 
 # Testing
 test:

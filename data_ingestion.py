@@ -12,11 +12,11 @@ Usage:
 """
 
 import argparse
-import logging
 import os
 import sqlite3
 from datetime import datetime
-from typing import Optional, Tuple, Dict
+from typing import Dict, Optional, Tuple
+
 from db_utils import setup_database
 from logging_utils import setup_logging
 
@@ -41,15 +41,16 @@ class WeatherDataIngestion:
         """Convert date from YYYYMMDD format to ISO 8601 format (YYYY-MM-DD)"""
         try:
             # Parse YYYYMMDD format using datetime
-            date_obj = datetime.strptime(date_str, "%Y%m%d")          
-                
+            date_obj = datetime.strptime(date_str, "%Y%m%d")
+
             # Return ISO format
             return date_obj.strftime("%Y-%m-%d")
         except ValueError:
             return None
 
-    def parse_weather_line(self, line: str, station_id: str
-        ) -> Optional[Tuple[str, str, int, int, int]]:
+    def parse_weather_line(
+        self, line: str, station_id: str
+    ) -> Optional[Tuple[str, str, int, int, int]]:
         """
         Parse a single line of weather data.
 
@@ -80,8 +81,7 @@ class WeatherDataIngestion:
             date_iso = self.convert_date_format(date_str)
             if not date_iso:
                 self.logger.warning(
-                    "Invalid date format for station %s: %s",
-                    station_id, date_str
+                    "Invalid date format for station %s: %s", station_id, date_str
                 )
                 return None
 
@@ -92,16 +92,14 @@ class WeatherDataIngestion:
                 precipitation = int(precip_str)
             except ValueError:
                 self.logger.warning(
-                    "Invalid numeric values for station %s: %s",
-                    station_id, line
+                    "Invalid numeric values for station %s: %s", station_id, line
                 )
                 return None
 
             return (station_id, date_iso, max_temp, min_temp, precipitation)
         except Exception as e:
             self.logger.error(
-                "Error parsing line for station %s: %s. Error: %s",
-                station_id, line, e
+                "Error parsing line for station %s: %s. Error: %s", station_id, line, e
             )
             return None
 
@@ -136,8 +134,7 @@ class WeatherDataIngestion:
             return True, False, None
         except sqlite3.IntegrityError:
             self.logger.debug(
-                "Duplicate record skipped: %s_%s",
-                station_id, parsed_data[1]
+                "Duplicate record skipped: %s_%s", station_id, parsed_data[1]
             )
             return False, True, None
         except sqlite3.DatabaseError as e:
@@ -169,8 +166,7 @@ class WeatherDataIngestion:
         start_time = datetime.now()
         station_id = os.path.splitext(os.path.basename(file_path))[0]
         self.logger.info(
-            "Starting ingestion for station %s from %s",
-            station_id, file_path
+            "Starting ingestion for station %s from %s", station_id, file_path
         )
 
         records_processed = 0
@@ -227,7 +223,11 @@ class WeatherDataIngestion:
             self.logger.info(
                 "Completed ingestion for station %s: %d ingested, %d skipped, "
                 "%d errors in %.2f seconds",
-                station_id, records_ingested, records_skipped, errors, duration
+                station_id,
+                records_ingested,
+                records_skipped,
+                errors,
+                duration,
             )
 
             return stats
@@ -328,22 +328,22 @@ class WeatherDataIngestion:
         self.logger.info("=" * 80)
         self.logger.info("WEATHER DATA INGESTION SUMMARY")
         self.logger.info("=" * 80)
-        self.logger.info("Start Time: %s", total_stats['start_time'])
-        self.logger.info("End Time: %s", total_stats['end_time'])
+        self.logger.info("Start Time: %s", total_stats["start_time"])
+        self.logger.info("End Time: %s", total_stats["end_time"])
         self.logger.info("Total Duration: %.2f seconds", duration)
-        self.logger.info("Files Processed: %d", total_stats['files_processed'])
-        self.logger.info("Files Successful: %d", total_stats['files_successful'])
-        self.logger.info("Files Failed: %d", total_stats['files_failed'])
+        self.logger.info("Files Processed: %d", total_stats["files_processed"])
+        self.logger.info("Files Successful: %d", total_stats["files_successful"])
+        self.logger.info("Files Failed: %d", total_stats["files_failed"])
         self.logger.info(
-            "Total Records Processed: %d", total_stats['total_records_processed']
+            "Total Records Processed: %d", total_stats["total_records_processed"]
         )
         self.logger.info(
-            "Total Records Ingested: %d", total_stats['total_records_ingested']
+            "Total Records Ingested: %d", total_stats["total_records_ingested"]
         )
         self.logger.info(
-            "Total Records Skipped: %d", total_stats['total_records_skipped']
+            "Total Records Skipped: %d", total_stats["total_records_skipped"]
         )
-        self.logger.info("Total Errors: %d", total_stats['total_errors'])
+        self.logger.info("Total Errors: %d", total_stats["total_errors"])
 
         return total_stats
 
@@ -385,5 +385,5 @@ Examples:
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())
- 

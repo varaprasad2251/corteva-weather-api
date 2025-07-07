@@ -4,28 +4,44 @@ Database utility functions for weather data project.
 
 Provides setup_database to create tables from weather_schema.sql.
 """
-import os
-import sqlite3
 import argparse
+import sqlite3
 
 
-def setup_database(db_path: str = "db/weather_data.db", schema_path: str = "weather_schema.sql"):
+def setup_database(db_path: str) -> None:
     """
-    Create database and tables if they don't exist.
-
+    Set up the SQLite database with required tables.
     Args:
-        db_path: Path to SQLite database file (default: db/weather_data.db)
-        schema_path: Path to SQL schema file (default: weather_schema.sql)
+        db_path: Path to the SQLite database file
     """
-    # Ensure database directory exists
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-
-    with sqlite3.connect(db_path) as conn:
-        cursor = conn.cursor()
-        with open(schema_path, "r", encoding="utf-8") as schema_file:
-            schema_sql = schema_file.read()
-            cursor.executescript(schema_sql)
-        conn.commit()
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS weather_records (
+            station_id TEXT NOT NULL,
+            date TEXT NOT NULL,
+            max_temp INTEGER,
+            min_temp INTEGER,
+            precipitation INTEGER,
+            PRIMARY KEY (station_id, date)
+        )
+        """
+    )
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS annual_weather_stats (
+            station_id TEXT NOT NULL,
+            year INTEGER NOT NULL,
+            avg_max_temp REAL,
+            avg_min_temp REAL,
+            total_precipitation REAL,
+            PRIMARY KEY (station_id, year)
+        )
+        """
+    )
+    conn.commit()
+    conn.close()
 
 
 if __name__ == "__main__":
@@ -43,5 +59,5 @@ if __name__ == "__main__":
         help="Path to SQL schema file (default: weather_schema.sql)",
     )
     args = parser.parse_args()
-    setup_database(args.db_path, args.schema_path)
-    print(f"Database schema created at {args.db_path}") 
+    setup_database(args.db_path)
+    print(f"Database schema created at {args.db_path}")

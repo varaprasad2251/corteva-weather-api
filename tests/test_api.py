@@ -207,14 +207,15 @@ class TestWeatherAPI:
         """Test date format validation with invalid dates."""
         from api.app import validate_date_format
 
-        assert validate_date_format("20200101") is False  # Wrong format (no dashes)
+        # Wrong format (no dashes)
+        assert validate_date_format("20200101") is False
         assert validate_date_format("2020-13-01") is False  # Invalid month
         assert validate_date_format("2020-01-32") is False  # Invalid day
         assert validate_date_format("invalid") is False
         assert validate_date_format("") is False
         assert validate_date_format("2020-01") is False  # Missing day
         assert validate_date_format(None) is False  # None value
-        
+
         # These should now be valid (flexible format)
         assert validate_date_format("2020-1-1") is True  # Flexible format
         assert validate_date_format("2020-01-01") is True  # Standard format
