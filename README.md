@@ -231,8 +231,7 @@ SELECT
     CAST(SUBSTR(date, 1, 4) AS INTEGER) as year,
     ROUND(AVG(CASE WHEN max_temp != -9999 THEN max_temp / 10.0 END), 2) as avg_max_temp,
     ROUND(AVG(CASE WHEN min_temp != -9999 THEN min_temp / 10.0 END), 2) as avg_min_temp,
-    ROUND(SUM(CASE WHEN max_temp != -9999 AND min_temp != -9999 AND precipitation != -9999 
-        THEN precipitation / 100.0 END), 2) as total_precipitation
+    ROUND(SUM(CASE WHEN precipitation != -9999 THEN precipitation / 100.0 END), 2) as total_precipitation
 FROM weather_records
 GROUP BY station_id, year
 ORDER BY station_id, year
