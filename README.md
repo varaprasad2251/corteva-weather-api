@@ -13,7 +13,7 @@ This project processes weather data records from weather stations across Nebrask
 
 The system provides:
 - Data ingestion with duplicate detection
-- Annual statistical analysis (averages and totals)
+- Annual statistical analysis
 - REST API with filtering and pagination
 - Comprehensive test coverage
 - Swagger documentation
@@ -31,8 +31,9 @@ corteva-weather-api/
 ├── db/                    # Database files
 ├── data/                  # Raw data
 ├── Makefile               # Build and run commands
-├── Pipfile                # Python dependencies
 ├── requirements.txt       # Dependencies file
+├── db_utils.py
+├── logging_utils.py
 └── README.md              
 ```
 
@@ -354,6 +355,20 @@ pipenv run pytest tests/test_data_analysis.py -v
 ```
 
 ---
+
+### Assumptions
+
+Following are assumptions made while working on the project:
+- **File Format**: All input weather data files are expected to be `.txt` files. During ingestion, only `.txt` files from given directory are processed.
+- **Missing Values**: The value `-9999` is used to indicate missing data for temperature or precipitation. These are treated as `NULL` in the database to allow proper statistical calculations.
+- **Date Range**: Only dates from the year **1800** up to but not including **2100** are considered valid. Records outside this range are skipped or rejected.
+- **Date Format**: Dates in the source files are assumed to be in `YYYYMMDD` format and are converted to ISO 8601 format (`YYYY-MM-DD`) before storing in the database.
+- **Station ID**: Each file represents a unique weather station, and the filename without extension is the station ID.
+- **Idempotency**: Ingestion is designed to be idempotent. If the same files are ingested multiple times, duplicates are avoided using the `(station_id, date)` primary key constraint.
+- **Units**:
+  - Temperatures are provided in **tenths of degrees Celsius**, precipitation is in **tenths of millimeters**.
+  - Conversion to degrees Celsius and centimeters happens only for stats analysis, not during ingestion.
+
 
 ## Extra Credit - Deployment
 

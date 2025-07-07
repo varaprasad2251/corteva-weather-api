@@ -13,10 +13,6 @@ This module contains unit tests for all API endpoints, including:
 Test Categories:
 - Unit tests: Test individual functions and components
 - Integration tests: Test API endpoints with database
-- Edge cases: Test boundary conditions and error scenarios
-
-Author: Varaprasad Korlapati
-Date: 2024
 """
 
 import json

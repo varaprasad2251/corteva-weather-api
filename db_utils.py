@@ -17,12 +17,10 @@ def setup_database(db_path: str, schema_path: str = "weather_schema.sql") -> Non
     """
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
     # Read and execute the schema file
     with open(schema_path, 'r') as schema_file:
         schema_sql = schema_file.read()
         cursor.executescript(schema_sql)
-    
     conn.commit()
     conn.close()
 
